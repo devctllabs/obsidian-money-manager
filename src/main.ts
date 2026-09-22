@@ -24,7 +24,7 @@ export default class MoneyManager extends Plugin {
     this.addSettingTab(settingsTab);
     this.registerView('money-manager', (leaf) => new MoneyView(leaf, controller));
     this.addCommand({
-      id: 'open-money-manager',
+      id: 'open',
       name: 'Open',
       callback: () => {
         void this.open();

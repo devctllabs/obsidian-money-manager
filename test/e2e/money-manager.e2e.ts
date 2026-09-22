@@ -38,7 +38,7 @@ async function saveModal(label: string) {
 }
 describe('Money Manager isolated host workflow', () => {
   it('sets up, records and edits a checkpoint, reflects Markdown and reloads cleanly', async () => {
-    await browser.executeObsidianCommand('money-manager:open-money-manager');
+    await browser.executeObsidianCommand('money-manager:open');
     const surface = await browser.executeObsidian(({ app }) => {
       const view = app.workspace.getLeavesOfType('money-manager')[0]?.view as
         { contentEl?: HTMLElement } | undefined;
@@ -133,7 +133,7 @@ describe('Money Manager isolated host workflow', () => {
     await browser.executeObsidian(({ app }) =>
       (app as unknown as { setting: { close: () => void } }).setting.close(),
     );
-    await browser.executeObsidianCommand('money-manager:open-money-manager');
+    await browser.executeObsidianCommand('money-manager:open');
     await click('button=Overview');
     await click('button=Year');
     await expect(browser.$('.mm-year-chart')).toBeDisplayed();
@@ -154,7 +154,7 @@ describe('Money Manager isolated host workflow', () => {
     await page.disablePlugin('money-manager');
     await browser.waitUntil(async () => (await browser.$$('.money-manager').length) === 0);
     await page.enablePlugin('money-manager');
-    await browser.executeObsidianCommand('money-manager:open-money-manager');
+    await browser.executeObsidianCommand('money-manager:open');
     await click('button=Accounts');
     await expect(browser.$('.mm-account h3')).toHaveText('Pocket');
     await expect(browser.$('.mm-account .mm-amount')).toHaveText('88.00 USD');
