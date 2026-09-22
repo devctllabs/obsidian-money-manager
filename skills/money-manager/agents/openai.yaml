@@ -1,0 +1,6 @@
+interface:
+  display_name: "Money Manager"
+  short_description: "Record confirmed financial facts in Markdown"
+  default_prompt: "Use $money-manager to prepare and validate my financial notes."
+policy:
+  allow_implicit_invocation: false

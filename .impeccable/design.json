@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-13T02:17:00Z",
+  "title": "Design System: Money Manager",
+  "extensions": {
+    "shadows": [
+      {
+        "name": "menu",
+        "value": "0 8px 36px rgb(0 0 0 / 22%)"
+      },
+      {
+        "name": "dialog",
+        "value": "0 24px 80px rgb(0 0 0 / 30%)"
+      }
+    ],
+    "motion": [
+      {
+        "name": "menu-unfold",
+        "value": "160ms ease-out"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow-leaf",
+        "value": "480px"
+      },
+      {
+        "name": "compact-chart",
+        "value": "640px"
+      }
+    ]
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "A precise ledger inside the writing workspace",
+    "overview": "User-requested Focus Flow UX clone: quiet tabs, ellipsis menus, searchable currency and account dialogs, six-row category pagination and contrast-adapted accent swatches.",
+    "keyCharacteristics": [
+      "Flat working rows",
+      "Tabular financial hierarchy",
+      "Paginated complete category legend",
+      "Focus Flow light/dark palettes"
+    ],
+    "rules": [
+      {
+        "name": "Native amounts remain visible",
+        "body": "A converted valuation always retains its native summaries and current-rate label.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Expose incomplete data and exact partial-save outcomes."
+    ],
+    "donts": [
+      "Do not rely on color alone or imply bank connectivity."
+    ]
+  }
+}

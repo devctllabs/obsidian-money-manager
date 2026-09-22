@@ -1,0 +1,8 @@
+/* Curated public Obsidian CSS variables, checked against desktop API 1.13.1.
+   https://docs.obsidian.md/Reference/CSS+variables/About+styling */
+.theme-light { --background-primary:#fff; --background-secondary:#f6f6f6; --text-normal:#222; --text-muted:#565656; --text-error:#b42318; --interactive-accent:#6554c0; --text-on-accent:#fff; --background-modifier-border:#d6d6d6; --link-color:#5343aa; --text-selection:#ddd8f5; }
+.theme-dark { --background-primary:#202020; --background-secondary:#282828; --text-normal:#eee; --text-muted:#b5b5b5; --text-error:#ff9999; --interactive-accent:#7161c8; --text-on-accent:#fff; --background-modifier-border:#494949; --link-color:#c4baff; --text-selection:#554c80; }
+.mm-host { --font-interface:system-ui,sans-serif; --font-ui-small:14px; background:var(--background-primary); color:var(--text-normal); padding:16px; min-height:100vh; box-sizing:border-box; }
+.mm-host button, .mm-host input, .mm-host select, .mm-host textarea { background:var(--background-secondary); color:var(--text-normal); border:1px solid var(--background-modifier-border); border-radius:7px; padding:6px 10px; }
+.mm-host button.mod-cta { background:var(--interactive-accent); color:var(--text-on-accent); }
+.mm-preview-document { white-space:pre-wrap; overflow-wrap:anywhere; }
