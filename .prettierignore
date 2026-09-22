@@ -1,0 +1,9 @@
+node_modules/
+main.js
+dist/
+release/
+storybook-static/
+coverage/
+.pnpm-store/
+.cache/
+pnpm-lock.yaml
