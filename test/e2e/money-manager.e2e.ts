@@ -17,6 +17,16 @@ async function chooseCurrency(label: string, code: string) {
   await browser.$('input[aria-label="Search currencies"]').setValue(code);
   await browser.keys('Enter');
 }
+async function setCategory(name: string) {
+  const mobile = await browser.executeObsidian(({ obsidian }) => obsidian.Platform.isMobile);
+  if (mobile) {
+    await browser.$('input[aria-label="Category"]').setValue(name);
+    return;
+  }
+  await click('.mm-category-field button');
+  await browser.$('input[aria-label="Search categories"]').setValue(name);
+  await click(`button=Create “${name}”`);
+}
 async function click(selector: string) {
   const element = browser.$(selector);
   await element.waitForDisplayed();
@@ -74,9 +84,7 @@ describe('Money Manager isolated host workflow', () => {
       'amount',
     );
     await browser.$('input[name="amount"]').setValue('7.00');
-    await click('.mm-category-field button');
-    await browser.$('input[aria-label="Search categories"]').setValue('Food');
-    await click('button=Create “Food”');
+    await setCategory('Food');
     await browser.$('textarea[name="description"]').setValue('Lunch');
     await saveModal('Save entry');
     await expect(browser.$('.mm-account .mm-amount')).toHaveText('86.00 USD');

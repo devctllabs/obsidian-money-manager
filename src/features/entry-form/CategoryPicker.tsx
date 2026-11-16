@@ -4,13 +4,24 @@ import { normalizeKey } from '../../domain/validation';
 import { DialogSurface } from '../ui/DialogSurface';
 import { ChevronIcon, SearchIcon, PlusIcon } from '../ui/Icons';
 import { categoryColor } from '../../application/reports/aggregates';
+import type { PickerMode } from '../ui/CalendarPicker';
 interface Props {
   categories: Record<string, Category>;
   value: string;
   change: (value: string) => void;
   flow: Flow;
+  pickerMode: PickerMode;
 }
-export function CategoryPicker({ categories, value, change, flow }: Props) {
+export function CategoryPicker({ categories, value, change, flow, pickerMode }: Props) {
+  if (pickerMode === 'native')
+    return <NativeCategoryPicker categories={categories} value={value} change={change} />;
+
+  return (
+    <DesktopCategoryPicker categories={categories} value={value} change={change} flow={flow} />
+  );
+}
+
+function DesktopCategoryPicker({ categories, value, change, flow }: Omit<Props, 'pickerMode'>) {
   const [origin, setOrigin] = useState<HTMLButtonElement | null>(null);
   const id = useId();
   return (
@@ -42,6 +53,32 @@ export function CategoryPicker({ categories, value, change, flow }: Props) {
           />
         </DialogSurface>
       )}
+    </div>
+  );
+}
+function NativeCategoryPicker({
+  categories,
+  value,
+  change,
+}: Pick<Props, 'categories' | 'value' | 'change'>) {
+  const id = useId();
+  const options = Object.entries(categories).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  return (
+    <div className="mm-field mm-category-field">
+      <label htmlFor={id}>Category</label>
+      <input
+        id={id}
+        aria-label="Category"
+        list={`${id}-options`}
+        placeholder="Uncategorized"
+        value={categories[value]?.name ?? value}
+        onChange={(event) => change(event.currentTarget.value)}
+      />
+      <datalist id={`${id}-options`}>
+        {options.map(([key, category]) => (
+          <option key={key} value={category.name} />
+        ))}
+      </datalist>
     </div>
   );
 }

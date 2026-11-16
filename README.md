@@ -142,7 +142,7 @@ fixed installation is needed.
 
 ```sh
 pnpm install --frozen-lockfile
-PLAYWRIGHT_BROWSERS_PATH=.cache/playwright pnpm exec playwright install chromium
+pnpm playwright:install
 pnpm format
 pnpm check
 pnpm check:full
