@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import process from 'node:process';
 
 const mobile = process.argv.includes('--mobile');
-const image = 'mcr.microsoft.com/playwright:v1.62.1-noble';
+const image = 'mcr.microsoft.com/playwright:v1.64.1-noble';
 const source = `${process.cwd()}:/source:ro`;
 const command = mobile ? 'pnpm test:e2e:mobile' : 'pnpm test:e2e';
 const containerScript = `
@@ -15,7 +15,7 @@ tar -C /source \
   --exclude=storybook-static \
   --exclude=release \
   -cf - . | tar -C /work -xf -
-corepack enable
+npm install --global pnpm@11.25.0
 pnpm install --frozen-lockfile
 xvfb-run -a ${command}
 `;

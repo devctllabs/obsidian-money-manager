@@ -27,6 +27,7 @@
     "test": "vitest run --project unit --project cli",
     "test:unit": "vitest run --project unit --project cli",
     "test:performance": "vitest run --project performance",
+    "playwright:install": "PLAYWRIGHT_BROWSERS_PATH=.cache/playwright playwright install chromium",
     "test:release-helper": "python3 -m unittest discover -s .github/scripts/tests -t .github/scripts",
     "test:storybook": "vitest run --project storybook",
     "storybook": "storybook dev -p 6006",

@@ -25,7 +25,10 @@ export const Income: Story = {
 export const MobileNativePickers: Story = {
   args: { pickerMode: 'native' },
   play: async ({ canvasElement }) => {
-    await userEvent.selectOptions(within(canvasElement).getByLabelText('Entry type'), 'income');
+    const canvas = within(canvasElement);
+    await userEvent.selectOptions(canvas.getByLabelText('Entry type'), 'income');
+    await userEvent.type(canvas.getByRole('combobox', { name: 'Category' }), 'Food');
+    await expect(canvas.getByRole('combobox', { name: 'Category' })).toHaveValue('Food');
   },
 };
 export const EmptyAccounts: Story = { args: { accounts: {} } };

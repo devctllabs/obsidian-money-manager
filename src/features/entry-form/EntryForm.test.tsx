@@ -22,9 +22,8 @@ it(
     const user = userEvent.setup();
     expect(screen.getByLabelText('Amount (GEL)')).toHaveFocus();
     await user.type(screen.getByLabelText('Amount (GEL)'), '7.00');
-    await user.click(screen.getByRole('button', { name: 'Category' }));
-    await user.type(screen.getByRole('combobox', { name: 'Search categories' }), 'Food');
-    await user.click(screen.getByRole('button', { name: 'Create “Food”' }));
+    const category = screen.getByRole('combobox', { name: 'Category' });
+    await user.type(category, 'Food');
     await user.click(screen.getByRole('button', { name: 'Save entry' }));
     expect(save).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'expense', amount: '7.00', newCategory: 'Food' }),
@@ -32,7 +31,7 @@ it(
     expect(await screen.findByRole('alert')).toHaveTextContent('Category saved');
     expect(screen.getByLabelText('Amount (GEL)')).toHaveValue('7.00');
     await user.selectOptions(screen.getByLabelText('Entry type'), 'income');
-    expect(screen.getByRole('button', { name: 'Category' })).toHaveTextContent('Uncategorized');
+    expect(category).toHaveValue('');
   },
 );
 it('routes an empty workspace to Accounts', async () => {

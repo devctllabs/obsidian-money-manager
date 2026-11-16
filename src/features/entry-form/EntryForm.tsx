@@ -133,6 +133,7 @@ function EntryEditor({
           value={category}
           change={setCategory}
           flow={flow}
+          pickerMode={rest.pickerMode}
         />
         <label className="mm-field-wide">
           Description (optional)
@@ -239,16 +240,24 @@ function CategoryInput({
   value,
   change,
   flow,
+  pickerMode,
 }: {
   categories: Record<string, Category>;
   value: string;
   change: (value: string) => void;
   flow: Flow;
+  pickerMode: PickerMode;
 }) {
   const { newCategory } = categorySelection(categories, value);
   return (
     <>
-      <CategoryPicker categories={categories} value={value} change={change} flow={flow} />
+      <CategoryPicker
+        categories={categories}
+        value={value}
+        change={change}
+        flow={flow}
+        pickerMode={pickerMode}
+      />
       {newCategory && (
         <p className="mm-muted">
           Create “{newCategory}” as an {flow} category when saving. No color is assigned.

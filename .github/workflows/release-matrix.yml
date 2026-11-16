@@ -2,8 +2,8 @@ name: Supported Obsidian matrix
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '17 4 * * 1'
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -51,12 +51,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
       - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm verify:release
+      - run: pnpm test:performance
       - name: Install Playwright Chromium
         env:
           PLAYWRIGHT_BROWSERS_PATH: .cache/playwright
         run: pnpm exec playwright install --with-deps chromium
-      - run: xvfb-run -a pnpm test:e2e:mobile
-      - run: pnpm test:performance
       - run: pnpm test:storybook
-      - run: pnpm build
-      - run: pnpm verify:release
+      - name: Run mobile Obsidian E2E
+        env:
+          OBSIDIAN_E2E_PROFILE: mobile
+        run: xvfb-run -a pnpm test:e2e:run
