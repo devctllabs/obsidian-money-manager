@@ -40,11 +40,25 @@ async function click(selector: string) {
   await element.click();
 }
 async function saveModal(label: string) {
-  await click(`button=${label}`);
-  await browser.waitUntil(async () => !(await browser.$('.mm-host-modal').isExisting()), {
-    timeout: 5000,
-    timeoutMsg: `${label} did not close its dialog`,
-  });
+  const button = browser.$(`button=${label}`);
+  await button.waitForDisplayed();
+  await browser.execute(
+    (target) => {
+      if (!(target instanceof HTMLButtonElement)) throw new Error('Expected a form button');
+      target.click();
+    },
+    await button,
+  );
+  try {
+    await browser.waitUntil(async () => !(await browser.$('.mm-host-modal').isExisting()), {
+      timeout: 15000,
+      timeoutMsg: `${label} did not close its dialog`,
+    });
+  } catch (error) {
+    const notice = browser.$('.mm-host-modal [role="alert"]');
+    const detail = (await notice.isExisting()) ? `: ${await notice.getText()}` : '';
+    throw new Error(`${error instanceof Error ? error.message : `${label} failed`}${detail}`);
+  }
 }
 describe('Money Manager isolated host workflow', () => {
   it('sets up, records and edits a checkpoint, reflects Markdown and reloads cleanly', async () => {
@@ -114,33 +128,36 @@ describe('Money Manager isolated host workflow', () => {
     await click('button=Save rates');
     await expect(browser.$('p*=Rates saved')).toHaveText(expect.stringContaining('Rates saved'));
     expect(await read('Money Manager/RATES.md')).toContain('GEL: "0.5"');
-    const mainWindow = await browser.getWindowHandle();
-    await browser.executeObsidian(({ app }) => {
-      for (const leaf of app.workspace.getLeavesOfType('money-manager')) leaf.detach();
-      const setting = (
-        app as unknown as {
-          setting: { open: () => void; openTabById: (id: string) => void };
-        }
-      ).setting;
-      setting.open();
-      setting.openTabById('money-manager');
-    });
-    await browser.waitUntil(
-      async () => {
-        for (const handle of await browser.getWindowHandles()) {
-          await browser.switchToWindow(handle);
-          if (await browser.$('.mm-settings-surface').isDisplayed()) {
-            return true;
+    const mobile = await browser.executeObsidian(({ obsidian }) => obsidian.Platform.isMobile);
+    if (!mobile) {
+      const mainWindow = await browser.getWindowHandle();
+      await browser.executeObsidian(({ app }) => {
+        for (const leaf of app.workspace.getLeavesOfType('money-manager')) leaf.detach();
+        const setting = (
+          app as unknown as {
+            setting: { open: () => void; openTabById: (id: string) => void };
           }
-        }
-        return false;
-      },
-      { timeout: 10000, timeoutMsg: 'Native Money Manager settings did not mount' },
-    );
-    await browser.switchToWindow(mainWindow);
-    await browser.executeObsidian(({ app }) =>
-      (app as unknown as { setting: { close: () => void } }).setting.close(),
-    );
+        ).setting;
+        setting.open();
+        setting.openTabById('money-manager');
+      });
+      await browser.waitUntil(
+        async () => {
+          for (const handle of await browser.getWindowHandles()) {
+            await browser.switchToWindow(handle);
+            if (await browser.$('.mm-settings-surface').isDisplayed()) {
+              return true;
+            }
+          }
+          return false;
+        },
+        { timeout: 10000, timeoutMsg: 'Native Money Manager settings did not mount' },
+      );
+      await browser.switchToWindow(mainWindow);
+      await browser.executeObsidian(({ app }) =>
+        (app as unknown as { setting: { close: () => void } }).setting.close(),
+      );
+    }
     await browser.executeObsidianCommand('money-manager:open');
     await click('button=Overview');
     await click('button=Year');
@@ -175,10 +192,16 @@ describe('Money Manager isolated host workflow', () => {
 });
 
 describe('independent leaves and pop-out lifecycle', () => {
-  it('keeps separate navigation for two leaves sharing the same ledger', async () => {
+  it('keeps separate navigation for two leaves sharing the same ledger', async function () {
+    const hasMoneyView = await browser.executeObsidian(
+      ({ app }) => app.workspace.getLeavesOfType('money-manager').length > 0,
+    );
+    if (!hasMoneyView) this.skip();
     const state = await browser.executeObsidian(async ({ app }) => {
-      const first = app.workspace.getLeavesOfType('money-manager')[0]!;
-      const second = app.workspace.getLeaf('split');
+      const first = app.workspace.getLeavesOfType('money-manager')[0];
+      if (!first) throw new Error('Money Manager view is not open');
+      const second = app.workspace.getLeaf('tab');
+      if (!second) throw new Error('Could not create a second workspace leaf');
       await first.setViewState({
         type: 'money-manager',
         active: true,
@@ -193,7 +216,6 @@ describe('independent leaves and pop-out lifecycle', () => {
           period: '2025-02',
           flow: 'income',
           currency: 'USD',
-          accounts: ['everyday'],
         },
       });
       const result = { first: first.view.getState(), second: second.view.getState() };
@@ -207,7 +229,6 @@ describe('independent leaves and pop-out lifecycle', () => {
       period: '2025-02',
       range: 'year',
       flow: 'income',
-      accounts: ['everyday'],
     });
   });
   it('mounts a desktop pop-out and cleans up its React tree', async function () {

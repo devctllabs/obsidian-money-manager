@@ -1,7 +1,8 @@
 import path from 'node:path';
 
 const mobileProfile = process.env.OBSIDIAN_E2E_PROFILE === 'mobile';
-const defaultObsidianVersion = '1.14.5';
+const defaultObsidianVersion = '1.15.1';
+const defaultInstallerVersion = 'earliest';
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
@@ -13,7 +14,7 @@ export const config: WebdriverIO.Config = {
       browserName: 'obsidian',
       'wdio:obsidianOptions': {
         appVersion: process.env.OBSIDIAN_APP_VERSION ?? defaultObsidianVersion,
-        installerVersion: process.env.OBSIDIAN_INSTALLER_VERSION ?? defaultObsidianVersion,
+        installerVersion: process.env.OBSIDIAN_INSTALLER_VERSION ?? defaultInstallerVersion,
         plugins: ['.'],
         vault: 'test/vaults/smoke',
         emulateMobile: mobileProfile,
