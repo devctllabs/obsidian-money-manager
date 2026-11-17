@@ -62,4 +62,6 @@ jobs:
       - name: Run mobile Obsidian E2E
         env:
           OBSIDIAN_E2E_PROFILE: mobile
+          OBSIDIAN_APP_VERSION: '1.15.1'
+          OBSIDIAN_INSTALLER_VERSION: earliest
         run: xvfb-run -a pnpm test:e2e:run
