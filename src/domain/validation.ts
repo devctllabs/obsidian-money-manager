@@ -1,8 +1,8 @@
-import type { Account, Category, Diagnostic, Entry, LocatedEntry } from './entry';
+import type { Account, Category, Diagnostic, Entry, EntryData, LocatedEntry } from './entry';
 import { minor, precision } from './money';
 import { decodeDocument, mapping, type Fields } from './workspace-document';
 
-class InvalidField extends Error {
+export class InvalidField extends Error {
   constructor(
     readonly field: string,
     message: string,
@@ -87,10 +87,9 @@ export function validateRates(managed: Fields): {
   }
   return { reference: managed.reference_currency, rates: rates as Record<string, string> };
 }
-export function validateEntry(
-  raw: unknown,
-  context: { period: string; today: string; accounts: Record<string, Account> },
-): Entry {
+type EntryContext = { period: string; today: string; accounts: Record<string, Account> };
+
+export function validateEntry(raw: unknown, context: EntryContext): Entry {
   const entry = mapping(raw);
   requireValue(
     typeof entry.id === 'string' &&
@@ -98,17 +97,22 @@ export function validateEntry(
     'id',
     'Expected UUIDv7',
   );
+  return validateEntryData(entry, context) as Entry;
+}
+
+export function validateEntryData(entry: Fields, context: EntryContext): EntryData {
   requireValue(
-    ['expense', 'income', 'balance_checkpoint'].includes(String(entry.type)),
+    entry.type === 'expense' || entry.type === 'income' || entry.type === 'balance_checkpoint',
     'type',
     'Unknown entry type',
   );
   requireValue(
     typeof entry.date === 'string' &&
-      validDate(entry.date, context.today) &&
+      /^\d{4}-\d{2}-\d{2}(?:T(?:[01]\d|2[0-3]):[0-5]\d)?$/u.test(entry.date) &&
+      validDate(entry.date.slice(0, 10), context.today) &&
       entry.date.startsWith(context.period),
     'date',
-    'Date must be valid, not future, and match the Month',
+    'Use YYYY-MM-DD or YYYY-MM-DDTHH:mm in the Ledger Month, on or before today',
   );
   requireValue(
     typeof entry.account === 'string' &&
@@ -124,7 +128,7 @@ export function validateEntry(
       field,
       'Expected text',
     );
-  return entry as Entry;
+  return entry as EntryData;
 }
 function validateEntryAmount(entry: Fields, currency: string) {
   const checkpoint = entry.type === 'balance_checkpoint';

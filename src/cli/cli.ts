@@ -5,6 +5,7 @@ import { buildSnapshot } from '../application/indexing/read-model';
 import type { Diagnostic } from '../domain/entry';
 import { validDate } from '../domain/validation';
 import { readWorkspace } from './filesystem';
+import { describeDiagnostic, describeImport, runImport } from './import';
 
 export interface CliResult {
   code: number;
@@ -15,13 +16,17 @@ export interface CliResult {
 const usage = `Money Manager
 
   money-manager validate <workspace-root> [--json] [--today YYYY-MM-DD]
+  money-manager import <workspace-root> <yaml-file>
+    [--apply] [--allow-duplicates] [--json] [--today YYYY-MM-DD]
   money-manager new-id
   money-manager --help
   money-manager --version
 
 validate reads the three catalogs and every Markdown file under Ledger.
---today defaults to the local system date. Paths may be absolute or relative.
-new-id prints one UUIDv7. Neither command writes files.
+import previews an Expense/Income YAML batch for one Account. --apply writes it.
+--allow-duplicates permits matching existing Ledger Entries only.
+--today overrides the local date used for validation. Paths may be absolute or relative.
+new-id prints one UUIDv7.
 Exit codes: 0 success; 1 data diagnostics; 2 invalid arguments or execution error.
 `;
 
@@ -36,16 +41,28 @@ function localToday(): string {
     .join('-');
 }
 
-function validationArgs(args: string[]) {
+function workspaceArgs(args: string[], importing: boolean) {
   const { values, positionals } = parseArgs({
     args,
     allowPositionals: true,
-    options: { json: { type: 'boolean' }, today: { type: 'string' } },
+    options: {
+      json: { type: 'boolean' },
+      today: { type: 'string' },
+      ...(importing && { apply: { type: 'boolean' }, 'allow-duplicates': { type: 'boolean' } }),
+    },
   });
-  if (positionals.length !== 1 || !positionals[0]) throw new Error(usage);
+  if (positionals.length !== (importing ? 2 : 1) || positionals.some((path) => !path))
+    throw new Error(usage);
   const today = values.today ?? localToday();
   if (!validDate(today, today)) throw new Error('--today must be a valid YYYY-MM-DD date');
-  return { root: positionals[0], today, json: values.json === true };
+  return {
+    root: positionals[0]!,
+    file: positionals[1],
+    today,
+    json: values.json === true,
+    apply: values.apply === true,
+    allowDuplicates: values['allow-duplicates'] === true,
+  };
 }
 
 function diagnosticKey(issue: Diagnostic): string {
@@ -54,41 +71,53 @@ function diagnosticKey(issue: Diagnostic): string {
 
 function report(diagnostics: Diagnostic[], json: boolean): CliResult {
   const status = diagnostics.length ? 'invalid' : 'valid';
-  const lines = diagnostics.map(
-    (issue) =>
-      `${issue.path}${issue.record ? ` [${issue.record}]` : ''}: ${issue.field}: ${issue.message}`,
-  );
+  const lines = diagnostics.map(describeDiagnostic);
   const stdout = json
     ? JSON.stringify({ status, diagnostics })
     : lines.join('\n') || 'Money Workspace is valid.';
   return { code: diagnostics.length ? 1 : 0, stdout: `${stdout}\n`, stderr: '' };
 }
 
-export async function runCli(args: string[]): Promise<CliResult> {
-  try {
-    if (args.length === 1) {
-      if (args[0] === '--help') return success(usage);
-      if (args[0] === '--version') return success(`${pkg.version}\n`);
-      if (args[0] === 'new-id') return success(`${v7()}\n`);
-    }
-    if (args[0] !== 'validate') throw new Error(usage);
-    const options = validationArgs(args.slice(1));
-    const { sources, root } = await readWorkspace(options.root);
-    const diagnostics = buildSnapshot(sources, root, options.today).diagnostics;
-    diagnostics.sort((a, b) => {
-      const left = diagnosticKey(a);
-      const right = diagnosticKey(b);
-      return left < right ? -1 : Number(left > right);
-    });
-    return report(diagnostics, options.json);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (args[0] === 'validate' && args.includes('--json'))
-      return {
-        code: 2,
-        stdout: `${JSON.stringify({ status: 'error', diagnostics: [], error: message })}\n`,
-        stderr: '',
-      };
-    return { code: 2, stdout: '', stderr: `${message}\n` };
+async function runWorkspaceCommand(command: 'validate' | 'import', args: string[]) {
+  const options = workspaceArgs(args, command === 'import');
+  if (command === 'import') {
+    const result = await runImport({ ...options, file: options.file! });
+    const codes = { invalid: 1, error: 2, partial: 2, preview: 0, applied: 0 };
+    const output = options.json ? JSON.stringify(result) : describeImport(result);
+    return { code: codes[result.status], stdout: `${output}\n`, stderr: '' };
   }
+  const { sources, root } = await readWorkspace(options.root);
+  const diagnostics = buildSnapshot(sources, root, options.today).diagnostics;
+  diagnostics.sort((a, b) => {
+    const left = diagnosticKey(a);
+    const right = diagnosticKey(b);
+    return left < right ? -1 : Number(left > right);
+  });
+  return report(diagnostics, options.json);
+}
+
+export async function runCli([command, ...args]: string[]): Promise<CliResult> {
+  const workspaceCommand = command === 'validate' || command === 'import';
+  try {
+    if (workspaceCommand) return await runWorkspaceCommand(command, args);
+    if (!args.length) {
+      if (command === '--help') return success(usage);
+      if (command === '--version') return success(`${pkg.version}\n`);
+      if (command === 'new-id') return success(`${v7()}\n`);
+    }
+    throw new Error(usage);
+  } catch (error) {
+    return invocationError(error, workspaceCommand && args.includes('--json'));
+  }
+}
+
+function invocationError(error: unknown, json: boolean): CliResult {
+  const message = error instanceof Error ? error.message : String(error);
+  if (json)
+    return {
+      code: 2,
+      stdout: `${JSON.stringify({ status: 'error', diagnostics: [], error: message })}\n`,
+      stderr: '',
+    };
+  return { code: 2, stdout: '', stderr: `${message}\n` };
 }

@@ -3,6 +3,36 @@ import userEvent from '@testing-library/user-event';
 import { expect, it, vi } from 'vitest';
 import { EntryForm } from './EntryForm';
 const accounts = { cash: { name: 'Cash', currency: 'GEL' } };
+it('edits an existing local minute and can clear the optional time', async () => {
+  const save = vi.fn().mockResolvedValue(undefined);
+  const user = userEvent.setup();
+  render(
+    <EntryForm
+      pickerMode="native"
+      accounts={accounts}
+      categories={{ expense: {}, income: {} }}
+      today="2026-09-13"
+      initial={{
+        id: '019949d2-89e7-7f12-8d44-0dc85e414342',
+        type: 'expense',
+        account: 'cash',
+        date: '2026-09-12T14:35',
+        amount: '7.00',
+      }}
+      save={save}
+      close={vi.fn()}
+      goAccounts={vi.fn()}
+    />,
+  );
+  const time = screen.getByLabelText('Time (optional)');
+  expect(time).toHaveValue('14:35');
+  await user.click(screen.getByRole('button', { name: 'Save entry' }));
+  expect(save).toHaveBeenLastCalledWith(expect.objectContaining({ date: '2026-09-12T14:35' }));
+  await user.click(screen.getByRole('button', { name: 'Clear time' }));
+  expect(time).toHaveValue('');
+  await user.click(screen.getByRole('button', { name: 'Save entry' }));
+  expect(save).toHaveBeenLastCalledWith(expect.objectContaining({ date: '2026-09-12' }));
+});
 it(
   'focuses amount, submits a native expense with a new category and retains the draft on ' +
     'failure',
@@ -49,6 +79,43 @@ it('routes an empty workspace to Accounts', async () => {
   );
   await userEvent.click(screen.getByRole('button', { name: 'Go to accounts' }));
   expect(goAccounts).toHaveBeenCalledOnce();
+});
+
+it('selects a day and a themed time in the desktop entry form before saving', async () => {
+  const user = userEvent.setup();
+  const save = vi.fn().mockResolvedValue(undefined);
+  render(
+    <EntryForm
+      pickerMode="desktop"
+      accounts={accounts}
+      categories={{ expense: {}, income: {} }}
+      today="2026-09-13"
+      save={save}
+      close={vi.fn()}
+      goAccounts={vi.fn()}
+    />,
+  );
+  await user.click(screen.getByRole('button', { name: 'Date' }));
+  const calendar = within(screen.getByRole('dialog', { name: 'Choose date' }));
+  expect(calendar.getByRole('button', { name: '14 September 2026' })).toBeDisabled();
+  await user.click(calendar.getByRole('button', { name: '12 September 2026' }));
+  const time = screen.getByRole('button', { name: 'Time (optional)' });
+  await user.click(time);
+  const picker = within(screen.getByRole('dialog', { name: 'Choose time' }));
+  await user.clear(picker.getByLabelText('Hour'));
+  await user.type(picker.getByLabelText('Hour'), '14');
+  await user.clear(picker.getByLabelText('Minute'));
+  await user.type(picker.getByLabelText('Minute'), '35');
+  await user.click(picker.getByRole('button', { name: 'Set time' }));
+  expect(time).toHaveFocus();
+  expect(save).not.toHaveBeenCalled();
+  await user.type(screen.getByLabelText('Amount (GEL)'), '12.30');
+  await user.click(screen.getByRole('button', { name: 'Save entry' }));
+  expect(save).toHaveBeenCalledWith(expect.objectContaining({ date: '2026-09-12T14:35' }));
+  await user.click(screen.getByRole('button', { name: 'Clear time' }));
+  expect(time).toHaveFocus();
+  await user.click(screen.getByRole('button', { name: 'Save entry' }));
+  expect(save).toHaveBeenLastCalledWith(expect.objectContaining({ date: '2026-09-12' }));
 });
 
 it('uses signed flow segments and a searchable account picker on desktop', async () => {

@@ -65,3 +65,9 @@ export function field(data: FormData, name: string): string {
   const value = data.get(name);
   return typeof value === 'string' ? value.trim() : '';
 }
+
+export function ledgerDateField(data: FormData): string {
+  const date = field(data, 'date');
+  const time = field(data, 'time');
+  return time ? `${date}T${time}` : date;
+}

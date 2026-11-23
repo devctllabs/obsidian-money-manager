@@ -4,6 +4,28 @@ import { useState } from 'react';
 import { expect, it, vi } from 'vitest';
 import { CalendarPicker } from './CalendarPicker';
 
+it('keeps the date popup inside the open dialog so it remains interactive', async () => {
+  const change = vi.fn();
+  render(
+    <dialog open aria-label="Add entry">
+      <CalendarPicker
+        label="Date"
+        mode="date"
+        pickerMode="desktop"
+        value="2026-09-13"
+        max="2026-09-13"
+        change={change}
+      />
+    </dialog>,
+  );
+  const user = userEvent.setup();
+  await user.click(screen.getByRole('button', { name: 'Date' }));
+  const popup = screen.getByRole('dialog', { name: 'Choose date' });
+  expect(screen.getByRole('dialog', { name: 'Add entry' })).toContainElement(popup);
+  await user.click(screen.getByRole('button', { name: '12 September 2026' }));
+  expect(change).toHaveBeenCalledWith('2026-09-12');
+});
+
 it('chooses a desktop date through direct year, month, and day navigation', async () => {
   const change = vi.fn();
   render(

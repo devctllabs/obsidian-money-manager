@@ -2,6 +2,15 @@ import type { SVGProps } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement>;
 
+export function ClockIcon(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 7.5v5l3 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </IconFrame>
+  );
+}
+
 export function InfoIcon(props: IconProps) {
   return (
     <IconFrame {...props}>

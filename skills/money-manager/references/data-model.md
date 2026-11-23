@@ -236,13 +236,13 @@ leaves a valid empty file so the plugin never destroys a user-owned body.
 | --- | --- | --- |
 | `id` | UUIDv7 string | Globally unique and immutable |
 | `type` | discriminator | `expense`, `income`, or `balance_checkpoint` |
-| `date` | quoted `YYYY-MM-DD` | Valid local calendar Date, not in the future |
+| `date` | quoted `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm` | Valid local calendar Date with optional minute, on or before today |
 | `account` | Account Key | Must resolve to one Account |
 
-Array position is the stable tie-breaker for Entries with the same Date. UI
-creation appends after existing same-day Entries. Sorting for display may be
-newest-first, but serialization preserves canonical array order unless an
-explicit edit changes it.
+The calendar Date determines the Month. For ordering and replay, a date without
+time counts as `00:00`. Entries in the same minute sort by their UUIDv7 in
+ascending lexicographic order, ignoring letter case. Display may reverse this
+order. Import appends Entries and preserves the stored order of existing records.
 
 ### Expense and Income
 
@@ -288,7 +288,7 @@ Entry discriminator.
 For Account `A` at today:
 
 1. Read every valid Entry for `A` dated on or before today.
-2. Sort by Date ascending, then by stored array position within the Month.
+2. Sort by local date and minute ascending, then by UUIDv7.
 3. Find the last `balance_checkpoint` in that order.
 4. Start at its `balance`, or at zero if no Checkpoint exists.
 5. Replay only later Entries: add Income, subtract Expenses, and replace the

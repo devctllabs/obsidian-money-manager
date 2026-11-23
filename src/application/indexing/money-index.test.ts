@@ -33,15 +33,26 @@ const expense = {
   amount: '7.00',
 };
 describe('Markdown index', () => {
-  it('replays stored same-day order and ignores pre-checkpoint expenses for balance', async () => {
+  it('replays local minutes and uses UUID order within a minute', async () => {
     const { index } = await fixture([
-      checkpoint,
-      expense,
-      { ...expense, id: id.replace('4342', '4344'), date: '2026-09-01', amount: '30.00' },
+      { ...expense, id: id.replace('4342', '4346'), date: '2026-09-02T12:00' },
+      { ...checkpoint, id: id.replace('4342', '4345'), date: '2026-09-02T12:00' },
+      { ...expense, id: id.replace('4342', '4344'), date: '2026-09-02T12:00' },
+      { ...expense, date: '2026-09-02T00:00' },
+      { ...checkpoint, date: '2026-09-02' },
+      { ...expense, id: id.replace('4342', '4347'), date: '2026-09-02T13:30', amount: '2.00' },
     ]);
     await index.refresh();
-    expect(index.getSnapshot().balances.cash).toBe('93.00');
-    expect(index.getSnapshot().entries).toHaveLength(3);
+    expect(index.getSnapshot().diagnostics).toEqual([]);
+    expect(index.getSnapshot().balances.cash).toBe('91.00');
+    expect(index.getSnapshot().entries.map((row) => row.entry.id.slice(-4))).toEqual([
+      '4342',
+      '4343',
+      '4344',
+      '4345',
+      '4346',
+      '4347',
+    ]);
   });
   it('keeps valid siblings, excludes malformed amounts and reports the record', async () => {
     const { index } = await fixture([checkpoint, { ...expense, amount: '0' }]);
@@ -83,6 +94,10 @@ describe('Markdown index', () => {
   it.each([
     { ...expense, date: '2026-09-31' },
     { ...expense, date: '2026-09-14' },
+    { ...expense, date: '2026-09-14T00:00' },
+    { ...expense, date: '2026-09-02T24:00' },
+    { ...expense, date: '2026-09-02T12:60' },
+    { ...expense, date: '2026-09-02T12:00Z' },
     { ...expense, date: '2026-08-01' },
     { ...expense, amount: '1.001' },
     { ...expense, amount: 1 },

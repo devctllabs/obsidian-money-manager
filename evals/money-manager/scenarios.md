@@ -24,10 +24,34 @@ the batch, then explicitly confirm the agent's full preview.
 
 - No financial files change before confirmation; clarifying the Account alone
   does not authorize saving.
+- Before confirmation, the agent runs a CLI import preview on a YAML file
+  with one Account and no IDs. After confirmation, it applies that same file.
 - Both dates are 2026-09-12, amounts are quoted exact decimals, and Categories
   resolve to the existing Expense namespace.
 - Two distinct UUIDv7 Entries are saved to the September Ledger on `cash`.
 - Whole-Workspace validation succeeds; unrelated catalog contents are preserved.
+
+## Timed batch and intentional Ledger repeat
+
+### Request
+
+Use $money-manager. Yesterday at 14:35 I spent 42.30 GEL on groceries on cash.
+Then at 16:00 I received 8.00 GEL on cash, without a category.
+
+### Setup
+
+One valid GEL Account `cash`, Expense Category `groceries`, a Balance Checkpoint
+dated `2026-09-12T15:00`, and the exact groceries Expense already in the Ledger.
+If asked, explain that it is a separate purchase with identical details.
+Confirm the full preview including the intentional repeat.
+
+### Success criteria
+
+- The preview identifies the existing UUID and file and distinguishes each
+  new Entry's effect relative to the Checkpoint.
+- Apply runs only after confirmation and uses `--allow-duplicates`.
+- The new Entries preserve the exact times and amounts, have unique IDs, and
+  the final Account Balance includes the Income after the Checkpoint.
 
 ## Initialize a Workspace and a Category
 

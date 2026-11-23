@@ -1,9 +1,11 @@
 ---
-status: accepted
+status: superseded by ADR-0007
 date: 2026-09-13
 ---
 
 # Keep the companion CLI read-only and share validation
+
+Superseded by [ADR-0007](./0007-apply-ledger-imports-through-the-companion-cli.md).
 
 The Node.js companion CLI is a separate executable that reuses Money Manager's pure Markdown
 parsing, reference validation, and snapshot construction. Its `validate` and `new-id` commands never

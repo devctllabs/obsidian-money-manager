@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import type { Account, Entry } from '../../domain/entry';
-import { Form, field } from '../ui/Form';
+import { Form, field, ledgerDateField } from '../ui/Form';
+import type { PickerMode } from '../ui/CalendarPicker';
+import { TimeField } from '../ui/TimeField';
 export interface CheckpointFormProps {
+  pickerMode: PickerMode;
   accounts: Record<string, Account>;
   account: string;
   calculated: string;
@@ -17,6 +20,7 @@ export interface CheckpointFormProps {
   close: () => void;
 }
 export function CheckpointForm({
+  pickerMode,
   accounts,
   account,
   calculated,
@@ -34,6 +38,7 @@ export function CheckpointForm({
     /* The form reports validation on submission. */
   }
   const currency = accounts[account]?.currency;
+  const [day, time] = (initial?.date ?? today).split('T');
   return (
     <Form
       label="Save checkpoint"
@@ -42,7 +47,7 @@ export function CheckpointForm({
         await save({
           account: field(data, 'account'),
           balance: observed,
-          date: field(data, 'date'),
+          date: ledgerDateField(data),
           reason: field(data, 'reason'),
         });
         close();
@@ -83,23 +88,20 @@ export function CheckpointForm({
             {delta} {currency}
           </span>
         </p>
-        <label>
-          Date
-          <input
-            type="date"
-            name="date"
-            required
-            max={today}
-            defaultValue={initial?.date ?? today}
-          />
-        </label>
+        <div className="mm-date-time">
+          <label>
+            Date
+            <input type="date" name="date" required max={today} defaultValue={day} />
+          </label>
+          <TimeField mode={pickerMode} initial={time} />
+        </div>
         <label className="mm-field-wide">
           Reason (optional)
           <textarea name="reason" defaultValue={initial?.reason ?? ''} />
         </label>
         <p className="mm-muted">
           This absolute checkpoint recalculates the current balance. Earlier entries remain in
-          period reports.
+          period reports. A date without a time counts as midnight.
         </p>
       </div>
     </Form>

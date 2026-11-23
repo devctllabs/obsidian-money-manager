@@ -159,7 +159,7 @@ function CalendarPopover({
         }}
       />
     </div>,
-    origin.ownerDocument.body,
+    origin.closest('dialog[open]') ?? origin.ownerDocument.body,
   );
 }
 

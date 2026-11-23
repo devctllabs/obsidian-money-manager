@@ -20,21 +20,23 @@ export function WorkspacePreview({
   empty = false,
   initialMode = 'overview',
   pickerMode = 'desktop',
+  today = '2026-09-13',
 }: {
   empty?: boolean;
   initialMode?: 'overview' | 'accounts' | 'settings';
   pickerMode?: 'desktop' | 'native';
+  today?: string;
 }) {
   const [dialog, setDialog] = useState<DialogContent | null>(null);
   const [settingsSection, setSettingsSection] = useState<SettingsSection>();
   const [query, setQuery] = useState(() =>
-    normalizeViewState({ mode: initialMode, currency: 'GEL' }, '2026-09-13', {}, false),
+    normalizeViewState({ mode: initialMode, currency: 'GEL' }, today, {}, false),
   );
   const [controller] = useState(() => {
     const documents = new MemoryDocuments();
-    if (!empty) documents.files = reportDocuments();
+    if (!empty) documents.files = reportDocuments(undefined, undefined, today);
     const settings = new SettingsWorkflow(normalizeSettings(null), async () => undefined);
-    const connection = new WorkspaceConnection(documents, settings, () => '2026-09-13');
+    const connection = new WorkspaceConnection(documents, settings, () => today);
     const instance = new ShellController(
       {
         pickerMode,
@@ -43,7 +45,7 @@ export function WorkspacePreview({
             [...documents.files.keys()].map((path) => path.split('/').slice(0, -1).join('/')),
           ),
         ],
-        today: () => '2026-09-13',
+        today: () => today,
         dialog: (title, render) => setDialog({ title, render }),
         openDocument: (path) =>
           setDialog({
@@ -73,12 +75,7 @@ export function WorkspacePreview({
     controller.connection.subscribe,
     controller.connection.getSnapshot,
   );
-  const state = normalizeViewState(
-    query,
-    '2026-09-13',
-    snapshot.accounts,
-    snapshot.phase === 'ready',
-  );
+  const state = normalizeViewState(query, today, snapshot.accounts, snapshot.phase === 'ready');
   return (
     <Accent appearance={controller.settings.current.appearance}>
       {!controller.configured ? (

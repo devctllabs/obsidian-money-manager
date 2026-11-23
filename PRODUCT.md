@@ -47,7 +47,7 @@ appearance, category, and rate configuration. Vault
 sync may replicate the same person's notes across devices, but sync conflicts
 and backup history remain Obsidian or vault concerns. Optional agent-assisted
 authoring runs outside Obsidian, requires an explicit confirmed preview, and
-uses a read-only validation CLI.
+uses the companion CLI to validate Workspaces and apply confirmed YAML batches.
 
 ## Capabilities and Constraints
 
@@ -69,7 +69,7 @@ uses a read-only validation CLI.
 - The optional external agent workflow validates, previews, confirms, writes,
   and validates again; the plugin does not depend on it.
 - V1 excludes Transfers, budgets, goals, recurring or scheduled Entries,
-  historical account-balance or net-worth charts, attachments, imports, crypto,
+  historical account-balance or net-worth charts, attachments, bank statement imports, crypto,
   teams, permissions, and realtime collaboration.
 - The V1 interface and documentation are English-only.
 

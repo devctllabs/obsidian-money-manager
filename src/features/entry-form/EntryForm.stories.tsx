@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 import { EntryForm } from './EntryForm';
+import { localToday } from '../shell/controller';
 const meta = {
   title: 'Features/Ledger/Modals/EntryForm',
   component: EntryForm,
@@ -8,7 +9,7 @@ const meta = {
     pickerMode: 'desktop',
     accounts: { cash: { name: 'Everyday', currency: 'GEL' } },
     categories: { expense: { food: { name: 'Food' } }, income: { salary: { name: 'Salary' } } },
-    today: '2026-09-13',
+    today: localToday(),
     save: fn(async () => undefined),
     close: fn(),
     goAccounts: fn(),
@@ -17,6 +18,41 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Expense: Story = {};
+export const ChooseDateAndTime: Story = {
+  args: { today: '2026-09-13' },
+  globals: { frame: 'mobile', theme: 'dark' },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const date = canvas.getByRole('button', { name: 'Date' });
+    await userEvent.click(date);
+    const body = within(canvasElement.ownerDocument.body);
+    const calendar = within(body.getByRole('dialog', { name: 'Choose date' }));
+    await expect(calendar.getByRole('button', { name: '14 September 2026' })).toBeDisabled();
+    await userEvent.click(calendar.getByRole('button', { name: '12 September 2026' }));
+    await expect(date).toHaveTextContent('12.09.2026');
+    const time = canvas.getByRole('button', { name: 'Time (optional)' });
+    await expect(time.getBoundingClientRect().top).toBe(date.getBoundingClientRect().top);
+    await userEvent.click(time);
+    const picker = within(body.getByRole('dialog', { name: 'Choose time' }));
+    const setTime = picker.getByRole('button', { name: 'Set time' });
+    const save = canvas.getByRole('button', { name: 'Save entry' });
+    const styles = canvasElement.ownerDocument.defaultView!;
+    await expect(styles.getComputedStyle(setTime).backgroundColor).toBe(
+      styles.getComputedStyle(save).backgroundColor,
+    );
+    await userEvent.clear(picker.getByLabelText('Hour'));
+    await userEvent.type(picker.getByLabelText('Hour'), '14');
+    await userEvent.clear(picker.getByLabelText('Minute'));
+    await userEvent.type(picker.getByLabelText('Minute'), '35');
+    await userEvent.click(setTime);
+    await expect(time).toHaveFocus();
+    await userEvent.type(canvas.getByLabelText('Amount (GEL)'), '12.30');
+    await userEvent.click(save);
+    await expect(args.save).toHaveBeenCalledWith(
+      expect.objectContaining({ date: '2026-09-12T14:35' }),
+    );
+  },
+};
 export const Income: Story = {
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole('button', { name: '+ Income' }));
@@ -79,7 +115,7 @@ export const Edit: Story = {
     initial: {
       id: '019949d2-89e7-7f12-8d44-0dc85e414342',
       type: 'expense',
-      date: '2026-09-12',
+      date: '2026-09-12T14:35',
       account: 'cash',
       amount: '42.30',
       category: 'food',

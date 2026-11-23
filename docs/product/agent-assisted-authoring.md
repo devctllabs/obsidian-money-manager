@@ -20,13 +20,12 @@ than overwritten.
 
 ## Companion CLI
 
-The separately installed Node.js CLI exposes `validate`, `new-id`, `--help`, and `--version`.
-`validate` reads the three catalogs and every Markdown document under `Ledger/`, rejects symbolic
-links in managed paths, and reports deterministic diagnostics as text or JSON. `new-id` emits one
-UUIDv7. Neither command writes Money Workspace files; confirmed Markdown edits remain owned by the
-agent workflow.
+The separately installed Node.js CLI validates the complete Workspace and can preview and apply a
+YAML batch of new Expenses and Income for one existing Account. Import generates UUIDv7 for
+applied Entries, flags exact repeats, and reports any partial write. The agent previews with the
+CLI, then applies the same YAML only after confirmation. If needed, it confirms and creates a new
+Category in a separate step before previewing the import.
 
-This boundary is recorded in
-[PDR-0005](./decisions/0005-keep-agent-assisted-authoring-external-and-confirmation-gated.md)
-and [ADR-0006](../adr/0006-keep-the-companion-cli-read-only-and-share-validation.md).
+[YAML import format](../../skills/money-manager/references/yaml-import.md).
+[PDR-0006](./decisions/0006-apply-confirmed-yaml-batches-through-the-companion-cli.md).
 

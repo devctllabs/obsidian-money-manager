@@ -40,14 +40,15 @@ creates a Balance Checkpoint after the Account is saved; zero creates no Entry.
 If only the Account was saved, **Retry checkpoint** repeats the second step.
 
 **Reconcile balance** shows the calculated balance, observed balance, difference,
-Date, and optional reason. Saving records a new absolute Balance Checkpoint.
+Date, and optional time and reason. Saving records a new absolute Balance Checkpoint.
 The latest Checkpoint becomes the basis for later Income and Expenses. Earlier
 Entries still appear in their period reports, so adding a backdated Expense
 before that Checkpoint does not change a later reconciled balance.
 
 Expand **Balance checkpoints** to edit or delete individual Checkpoints. These
 actions recalculate the current balance. A Checkpoint cannot become an Expense
-or Income. Same-day replay follows the saved array order.
+or Income. Replay uses the local date and time. A date without time counts as
+midnight, and records in the same minute sort by UUIDv7.
 
 Rename an Account freely. Changing its Key or Currency, or deleting it, is
 blocked while Ledger Entries reference it. If damaged documents prevent checking
@@ -57,7 +58,8 @@ references, repair the listed documents first.
 
 Use **Add entry** from the view or command palette. The form starts with Expense,
 today's Date, and focus on Amount. Select an Account, enter a positive Native
-Amount, and optionally choose a Category and Description. Future dates, zero or
+Amount, and optionally choose a time, Category, and Description. Date and Time
+appear together in the form. Use **Clear time** to keep just the Date. Future dates, zero or
 negative flow amounts, and excess currency precision are rejected. JPY permits
 zero decimal places; USD and GEL permit two; KWD permits three.
 
@@ -77,6 +79,14 @@ then removes the original. A destination failure leaves the original unchanged.
 A source-removal failure leaves both copies and a diagnostic naming both files;
 neither contributes to authoritative totals until you resolve the duplicate in
 Markdown. The plugin never chooses a winner automatically.
+
+### Add entries from a YAML file
+
+Use the companion CLI to preview and add a batch of new Expenses and Income
+for one Account. Review `money-manager import <workspace-root> <batch.yaml>`
+and rerun it with `--apply` to save the batch. When adding a fact on the date
+of a Balance Checkpoint, review whether it belongs before or after
+reconciliation. See the [YAML import format](../skills/money-manager/references/yaml-import.md).
 
 ## Categories
 

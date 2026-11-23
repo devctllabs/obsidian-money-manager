@@ -118,6 +118,7 @@ export class ShellController {
     const workflow = this.checkpoints;
     this.dialog(row ? 'Edit balance checkpoint' : 'Reconcile balance', (close) => (
       <CheckpointForm
+        pickerMode={this.host.pickerMode}
         accounts={snapshot.accounts}
         account={key}
         calculated={calculated}

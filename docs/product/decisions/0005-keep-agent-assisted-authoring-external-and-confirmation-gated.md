@@ -1,6 +1,6 @@
 # Keep agent-assisted authoring external and confirmation-gated
 
-Status: Accepted
+Status: Superseded by [PDR-0006](./0006-apply-confirmed-yaml-batches-through-the-companion-cli.md)
 Date: 2026-09-13
 
 Money Manager supports optional agent-assisted authoring outside the Obsidian plugin, but every

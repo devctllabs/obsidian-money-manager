@@ -52,7 +52,7 @@ notes.
 V1 includes expenses, income, accounts, balance reconciliation, flat typed
 categories, manual exchange rates, month/year reports, and entry CRUD. It does
 not include transfers, budgets, recurring or scheduled entries, historical
-net-worth charts, bank sync, remote rates, crypto assets, attachments, importers,
+net-worth charts, bank sync, remote rates, crypto assets, attachments, bank statement import,
 collaboration, or localization beyond English.
 
 ## Agent skill and CLI
@@ -60,7 +60,8 @@ collaboration, or localization beyond English.
 The companion skill helps an external agent maintain the same Markdown files:
 dictate Expenses or Income, review the proposed dates, Accounts and Categories,
 and confirm the whole batch before it is saved. Invoke it explicitly as
-`$money-manager`. The CLI validates files; the agent makes the confirmed edits.
+`$money-manager`. The CLI validates the Workspace and applies confirmed YAML
+batches of new Expenses and Income.
 The Obsidian plugin itself has no AI runtime or dependency on this CLI.
 
 ### Install from GitHub
@@ -114,19 +115,25 @@ this source checkout after installation.
 
 ```sh
 money-manager validate "/path/to/Money Manager" --json --today 2026-09-13
+money-manager import "/path/to/Money Manager" "./batch.yaml"
+money-manager import "/path/to/Money Manager" "./batch.yaml" --apply
 money-manager new-id
 money-manager --help
 ```
 
 `validate` scans the three catalogs and all Markdown below `Ledger/`; a missing
 Ledger directory is valid. It checks the whole Workspace, not just the last
-edited file. `--today` defaults to the local system date. `new-id` prints one
-UUIDv7. Neither command modifies files. Symbolic links inside managed document
-paths are rejected rather than followed.
+edited file. `--today` overrides the local calendar date used for validation.
+`new-id` prints one UUIDv7. Managed paths must contain regular files and
+directories.
+
+`import` previews a strict YAML batch for one existing Account. After reviewing
+it, run the same command with `--apply` to write the batch and generate UUIDv7
+identifiers. [YAML format, duplicates, and recovery](./skills/money-manager/references/yaml-import.md).
 
 Exit codes are `0` for success, `1` for data diagnostics, and `2` for invalid
-arguments or filesystem errors. JSON is one document on stdout with `status`
-(`valid`, `invalid`, or `error`) and `diagnostics`; execution errors add `error`.
+arguments or execution errors. JSON is one document on stdout with `status`
+and `diagnostics`. Import adds `preview`, `applied` and `partial` results.
 Diagnostics contain `path`, optional `record`, `field`, `message`, and `monetary`.
 Every diagnostic blocks normal skill authoring, including unknown Categories.
 Validation cannot detect a mistaken but structurally valid financial fact.
