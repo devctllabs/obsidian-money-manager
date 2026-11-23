@@ -45,7 +45,7 @@
     "check": "pnpm format:check && pnpm lint && pnpm quality && pnpm typecheck && pnpm test:unit && pnpm test:performance && pnpm test:storybook && pnpm build:storybook && pnpm build && pnpm build:cli && pnpm verify:release",
     "check:full": "pnpm format:check && pnpm lint && pnpm quality && pnpm typecheck && pnpm test:unit && pnpm test:performance && pnpm test:storybook && pnpm build:storybook && pnpm build && pnpm build:cli && pnpm verify:release && pnpm test:e2e:headless",
     "package:release": "pnpm verify:release && node scripts/package-release.mjs",
-    "version": "node version-bump.mjs && git add manifest.json versions.json"
+    "version": "node version-bump.mjs && git add manifest.json"
   },
   "license": "MIT",
   "dependencies": {
