@@ -1,6 +1,6 @@
 {
   "name": "obsidian-money-manager",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A local Markdown financial ledger for Obsidian.",
   "type": "module",
   "main": "main.js",
