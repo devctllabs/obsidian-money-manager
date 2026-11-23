@@ -1,7 +1,7 @@
 {
   "id": "money-manager",
   "name": "Money Manager",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minAppVersion": "1.8.7",
   "description": "Track expenses, income and reconciled balances in local Markdown.",
   "author": "Money Manager contributors",
