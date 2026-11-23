@@ -2,6 +2,7 @@ import { chooseCurrency } from '../../test/storybook/choose-currency';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { WorkspacePreview } from '../../test/storybook/WorkspacePreview';
+import { localToday } from './controller';
 
 const meta = {
   title: 'Features/Shell/Money Manager',
@@ -11,7 +12,7 @@ const meta = {
       description: {
         component:
           'Complete interactive workspace. Uses production forms and workflows with isolated ' +
-          'Markdown storage in memory. Fixed review date: September 13, 2026. Reload the story ' +
+          'Markdown storage in memory. Loaded uses the current local date. Reload the story ' +
           'to reset its data.',
       },
     },
@@ -19,12 +20,12 @@ const meta = {
 } satisfies Meta<typeof WorkspacePreview>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const Loaded: Story = {};
+export const Loaded: Story = { args: { today: localToday() } };
 export const Accounts: Story = { args: { initialMode: 'accounts' } };
 export const Settings: Story = { args: { initialMode: 'settings' } };
 export const FirstRun: Story = { args: { empty: true } };
 export const MobileDark: Story = {
-  args: { pickerMode: 'native' },
+  args: { pickerMode: 'native', today: localToday() },
   globals: { theme: 'dark', frame: 'mobile' },
 };
 export const CompleteWorkflow: Story = {
@@ -42,6 +43,11 @@ export const CompleteWorkflow: Story = {
     await expect(await canvas.findByText('100.00 USD')).toBeVisible();
     await userEvent.click(canvas.getByRole('button', { name: 'Add entry' }));
     const entry = within(canvas.getByRole('dialog'));
+    const date = entry.getByRole('button', { name: 'Date' });
+    await userEvent.click(date);
+    const calendar = within(entry.getByRole('dialog', { name: 'Choose date' }));
+    await userEvent.click(calendar.getByRole('button', { name: '13 September 2026' }));
+    await expect(date).toHaveFocus();
     await userEvent.type(entry.getByLabelText('Amount (USD)'), '12.50');
     await userEvent.type(entry.getByLabelText('Description (optional)'), 'Storybook lunch');
     await userEvent.click(entry.getByRole('button', { name: 'Save entry' }));

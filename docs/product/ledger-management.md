@@ -10,12 +10,14 @@ Account Balance.
 An Account has a stable readable Key, display name, and Currency. Its current Account Balance is
 derived from the latest Balance Checkpoint on or before today and the later Income and Expenses;
 without a Checkpoint, replay starts at zero. Earlier Entries remain in their historical Period
-Reports. Same-day replay follows stored array order.
+Reports. Replay follows local date and time, with absent times treated as
+midnight and UUIDv7 breaking ties. The calendar date determines the Month.
+[PDR-0007](./decisions/0007-order-ledger-entries-by-local-minute-and-uuid.md).
 
 Creating an Account can also record a non-zero observed balance. The Account is saved first and
 the Checkpoint second; if the second write fails, the Account remains and **Retry checkpoint**
 completes the intended balance without recreating it. Reconciliation appends a new Checkpoint after
-showing calculated balance, observed balance, difference, date, and optional reason. Checkpoints
+showing calculated balance, observed balance, difference, date, and optional time and reason. Checkpoints
 can be edited or deleted individually and cannot become Expenses or Income.
 
 Display names may change without rewriting the Ledger. A referenced Account Key or Currency cannot
@@ -25,7 +27,7 @@ uncertain, the mutation remains blocked.
 ## Expenses, Income, and Categories
 
 Add entry defaults to Expense, today's local date, and Amount focus. Account, positive Amount, and
-non-future Date are required; Category and Description are optional. Amount precision follows the
+non-future Date are required. Time, Category and Description are optional. Amount precision follows the
 Account Currency. Editing may change all fields, but moving an Entry to another Account requires
 the same Currency, and changing Expense to Income clears its Category.
 

@@ -18,4 +18,6 @@ rules that are costly or surprising to change.
 - [PDR-0003 — Value mixed Currencies with current Manual Rates](./decisions/0003-value-currencies-at-current-manual-rates.md)
 - [PDR-0004 — Keep personal finance local and mobile](./decisions/0004-keep-personal-finance-local-and-mobile.md)
 - [PDR-0005 — Keep agent-assisted authoring external and confirmation-gated](./decisions/0005-keep-agent-assisted-authoring-external-and-confirmation-gated.md)
+- [PDR-0006 — Apply confirmed YAML batches through the companion CLI](./decisions/0006-apply-confirmed-yaml-batches-through-the-companion-cli.md)
+- [PDR-0007 — Order Ledger Entries by local minute and UUIDv7](./decisions/0007-order-ledger-entries-by-local-minute-and-uuid.md)
 

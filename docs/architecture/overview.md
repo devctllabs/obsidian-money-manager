@@ -15,7 +15,7 @@ flowchart LR
     domain["Pure domain, parsing, validation, reports"]
     workspace[("Money Workspace Markdown")]
     agent["External agent skill"]
-    cli["Read-only Node CLI"]
+    cli["Node CLI"]
 
     user --> host
     host --> react
@@ -27,8 +27,8 @@ flowchart LR
     user --> agent
     agent --> cli
     cli --> domain
-    cli --> workspace
-    agent -->|"confirmed Markdown edits"| workspace
+    cli -->|"validation and confirmed import"| workspace
+    agent -->|"other confirmed Markdown edits"| workspace
 ```
 
 ## Boundaries and ownership
@@ -44,7 +44,7 @@ The CLI has its own `src/cli/main.ts` entrypoint and Node filesystem adapter. It
 snapshot builder and validation contracts but is never imported by the Obsidian entrypoint. This
 separation keeps Node APIs out of the mobile-compatible plugin runtime, as required by
 [ADR-0004](../adr/0004-keep-the-plugin-local-only-and-mobile-compatible.md) and
-[ADR-0006](../adr/0006-keep-the-companion-cli-read-only-and-share-validation.md).
+[ADR-0007](../adr/0007-apply-ledger-imports-through-the-companion-cli.md).
 
 ## Index and read flow
 
@@ -61,7 +61,7 @@ so data from two Money Workspaces is never merged.
 
 ## Mutation flow and failure safety
 
-All mutations share one serialized queue. Before changing a document, a workflow refreshes the
+Plugin mutations share one serialized queue. Before changing a document, a workflow refreshes the
 index, rejects diagnostics on the target, parses the latest content, validates managed records, and
 checks the caller's expected prior values. Obsidian writes use `Vault.process`; creation uses public
 Vault APIs and creates missing parent folders. Serialization preserves unrelated frontmatter,
@@ -72,6 +72,11 @@ ordering: failure before the destination write preserves the source, while failu
 source preserves both UUID-identical copies and makes the conflict explicit. Account creation and
 quick Category creation intentionally expose safe partial-success results instead of rolling back a
 valid first write.
+
+For YAML import, the CLI plans all changes against a validated snapshot. Apply writes one Month
+at a time after comparing the original document and catalogs with that snapshot. A failure
+reports the committed and remaining Entries. This file check detects concurrent edits observed
+before replacement, without a shared transaction across Obsidian and external processes.
 
 ## Lifecycle, delivery, and operations
 

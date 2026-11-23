@@ -6,3 +6,4 @@
 - [0004 — Keep the plugin local-only and mobile-compatible](./0004-keep-the-plugin-local-only-and-mobile-compatible.md)
 - [0005 — Keep core contracts host-agnostic](./0005-keep-core-contracts-host-agnostic.md)
 - [0006 — Keep the companion CLI read-only and share validation](./0006-keep-the-companion-cli-read-only-and-share-validation.md)
+- [0007 — Apply Ledger imports through the companion CLI](./0007-apply-ledger-imports-through-the-companion-cli.md)

@@ -79,5 +79,6 @@ export function EntryList({
 }
 
 function formatDay(date: string) {
-  return `${date.slice(8, 10)}.${date.slice(5, 7)}`;
+  const day = `${date.slice(8, 10)}.${date.slice(5, 7)}`;
+  return date.length > 10 ? `${day} ${date.slice(11)}` : day;
 }

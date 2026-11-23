@@ -19,15 +19,25 @@ export function normalizeRoot(input: string): string {
     throw new Error('Invalid workspace root');
   return root;
 }
-export function decodeDocument(text: string) {
-  const match = /^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?=\r?\n|$)/u.exec(text);
+function parseFrontmatter(text: string) {
+  const match = /^((?:\uFEFF)?---(\r?\n))([\s\S]*?)\r?\n---(?=\r?\n|$)/u.exec(text);
   if (!match) throw new Error('Missing YAML frontmatter');
-  const yaml = parseDocument(match[1]!, { uniqueKeys: true });
+  const yaml = parseDocument(match[3]!, { uniqueKeys: true });
   if (yaml.errors.length) throw new Error(yaml.errors[0]!.message);
+  return { yaml, opening: match[1]!, newline: match[2]!, body: text.slice(match[0].length) };
+}
+export function decodeDocument(text: string) {
+  const { yaml, body } = parseFrontmatter(text);
   const frontmatter = mapping(yaml.toJS() as unknown);
   const managed = mapping(frontmatter.money_manager);
   if (managed.schema_version !== 1) throw new Error('Unsupported or missing schema_version');
-  return { managed, frontmatter, body: text.slice(match[0].length) };
+  return { managed, frontmatter, body };
+}
+export function appendLedgerEntries(text: string, entries: readonly Fields[]): string {
+  const { yaml, opening, newline, body } = parseFrontmatter(text);
+  for (const entry of entries) yaml.addIn(['money_manager', 'entries'], entry);
+  const frontmatter = yaml.toString({ flowCollectionPadding: false }).replaceAll('\n', newline);
+  return `${opening}${frontmatter}---${body}`;
 }
 export function encodeDocument(document: ReturnType<typeof decodeDocument>): string {
   const frontmatter = stringify({ ...document.frontmatter, money_manager: document.managed });

@@ -48,7 +48,7 @@ export function Accounts({
               <h3>{account.name}</h3>
               <p className="mm-muted">
                 {snapshot.checkpoints[key]
-                  ? `Last reconciled: ${snapshot.checkpoints[key].entry.date}`
+                  ? `Last reconciled: ${snapshot.checkpoints[key].entry.date.replace('T', ' ')}`
                   : 'Not reconciled yet'}
               </p>
             </div>

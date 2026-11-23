@@ -1,9 +1,10 @@
 import { CategoryPicker } from './CategoryPicker';
 import { useEffect, useRef, useState } from 'react';
-import { Form, field } from '../ui/Form';
+import { Form, field, ledgerDateField } from '../ui/Form';
 import type { Account, Category, Entry, Flow } from '../../domain/entry';
 import { AccountPicker } from './AccountPicker';
 import { CalendarPicker, type PickerMode } from '../ui/CalendarPicker';
+import { TimeField } from '../ui/TimeField';
 export interface EntryFormProps {
   pickerMode: PickerMode;
   accounts: Record<string, Account>;
@@ -73,7 +74,8 @@ function EntryEditor({
   const [flow, setFlow] = useState(defaults.flow);
   const [account, setAccount] = useState(defaults.account);
   const [category, setCategory] = useState(defaults.category);
-  const [date, setDate] = useState(defaults.date);
+  const [day, time] = defaults.date.split('T');
+  const [date, setDate] = useState(day!);
   const amountRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     amountRef.current?.focus();
@@ -93,7 +95,7 @@ function EntryEditor({
           type: flow,
           account,
           amount: field(data, 'amount'),
-          date: field(data, 'date'),
+          date: ledgerDateField(data),
           description: field(data, 'description'),
           ...categorySelection(categories[flow], category),
         });
@@ -118,16 +120,19 @@ function EntryEditor({
           value={account}
           change={setAccount}
         />
-        <CalendarPicker
-          label="Date"
-          mode="date"
-          pickerMode={rest.pickerMode}
-          value={date}
-          change={setDate}
-          name="date"
-          required
-          max={today}
-        />
+        <div className="mm-date-time">
+          <CalendarPicker
+            label="Date"
+            mode="date"
+            pickerMode={rest.pickerMode}
+            value={date}
+            change={setDate}
+            name="date"
+            required
+            max={today}
+          />
+          <TimeField mode={rest.pickerMode} initial={time} />
+        </div>
         <CategoryInput
           categories={categories[flow]}
           value={category}

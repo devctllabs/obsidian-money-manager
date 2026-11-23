@@ -9,7 +9,14 @@ import {
 } from '../../domain/validation';
 import { mapping } from '../../domain/workspace-document';
 import { formatMinor, minor } from '../../domain/money';
-import type { Account, Category, Diagnostic, Flow, LocatedEntry } from '../../domain/entry';
+import {
+  compareEntries,
+  type Account,
+  type Category,
+  type Diagnostic,
+  type Flow,
+  type LocatedEntry,
+} from '../../domain/entry';
 
 export interface Snapshot {
   phase: 'loading' | 'ready';
@@ -93,8 +100,8 @@ export function buildSnapshot(
       snapshot.diagnostics.push(diagnostic(error, path));
     }
   }
-  snapshot.entries = excludeDuplicates(entries, snapshot.diagnostics, identities).sort(
-    (a, b) => a.entry.date.localeCompare(b.entry.date) || a.position - b.position,
+  snapshot.entries = excludeDuplicates(entries, snapshot.diagnostics, identities).sort((a, b) =>
+    compareEntries(a.entry, b.entry),
   );
   replayBalances(snapshot);
   snapshot.incomplete = snapshot.diagnostics.some((item) => item.monetary);

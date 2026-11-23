@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterAll, beforeAll, expect, it } from 'vitest';
@@ -50,9 +50,9 @@ it('propagates real process exit codes and JSON for bad data and execution error
   expect(execute('unknown').status).toBe(2);
 });
 
-it('validates an empty Money Workspace through the packaged entrypoint', async () => {
+it('imports and validates a Workspace through the packaged entrypoint', async () => {
   const catalogs = {
-    ACCOUNTS: { type: 'accounts', accounts: {} },
+    ACCOUNTS: { type: 'accounts', accounts: { cash: { name: 'Cash', currency: 'GEL' } } },
     CATEGORIES: { type: 'categories', categories: { expense: {}, income: {} } },
     RATES: { type: 'rates', reference_currency: 'GEL', rates: {} },
   };
@@ -61,4 +61,34 @@ it('validates an empty Money Workspace through the packaged entrypoint', async (
   const result = execute('validate', directory, '--json', '--today', '2026-09-13');
   expect(result.status).toBe(0);
   expect(JSON.parse(result.stdout)).toEqual({ status: 'valid', diagnostics: [] });
+  const file = join(directory, 'batch.yaml');
+  await writeFile(
+    file,
+    'version: 1\naccount: cash\nentries:\n' +
+      '  - type: income\n    date: "2026-09-12T17:00"\n    amount: "8.00"\n',
+  );
+  const preview = execute('import', '.', 'batch.yaml', '--json', '--today', '2026-09-13');
+  expect(preview.status).toBe(0);
+  expect(JSON.parse(preview.stdout)).toMatchObject({ status: 'preview' });
+  const applied = execute(
+    'import',
+    '.',
+    'batch.yaml',
+    '--json',
+    '--today',
+    '2026-09-13',
+    '--apply',
+  );
+  expect(applied.status).toBe(0);
+  expect(JSON.parse(applied.stdout)).toMatchObject({
+    status: 'applied',
+    applied: [
+      {
+        index: 0,
+        path: join(await realpath(directory), 'Ledger/2026/09.md'),
+        id: expect.any(String) as unknown,
+      },
+    ],
+  });
+  expect(execute('validate', directory, '--today', '2026-09-13').status).toBe(0);
 });

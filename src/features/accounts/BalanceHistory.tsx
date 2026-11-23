@@ -40,7 +40,7 @@ export function BalanceHistory({
       {visible.map((row) => (
         <div className="mm-history-row" key={row.entry.id}>
           <div>
-            <time dateTime={row.entry.date}>{row.entry.date}</time>
+            <time dateTime={row.entry.date}>{row.entry.date.replace('T', ' ')}</time>
             <p className="mm-muted">
               {row.entry.reason || 'Observed account balance'}
               {row.entry.id === active && (
